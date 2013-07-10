@@ -8,10 +8,22 @@ namespace fs = boost::filesystem;
 void processing_all_files( fs::path & full_path );
 int print_png_info(const char* filename);
 std::string get_png_size(const char* filename);
-
+std::string target_png = "";
 int main(int argc, char **argv)
 {
-	fs::path full_path("./", fs::native);
+	std::string path;
+	if(argc>1){
+		path = argv[1];
+	}else{
+		path = "./";
+	}
+	
+	if(argc>2){
+		target_png = argv[2];
+	
+	}
+
+	fs::path full_path(path.c_str(), fs::native);
 	processing_all_files( full_path );
 	char buf[256] = {0};
 	cin>>buf;
@@ -27,10 +39,18 @@ void processing_all_files( fs::path & full_path )
 		{
 			if (! fs::is_directory(*item_begin) ){
 				std::string file_name  = item_begin->path().filename().string();
+				std::string name = file_name.substr(0,file_name.find(".bsprite"));
+
 				if (file_name.find("bsprite")!=file_name.npos){
-					std::string name = file_name.substr(0,file_name.find(".bsprite"));
-					std::string png_name = name;
-					png_name.append(".png");
+					std::string png_name = "";
+					if (target_png.length()>0){
+						png_name = target_png;
+						printf(png_name.c_str());
+					}else{
+						png_name = name;
+						png_name.append(".png");
+					}
+
 					std::string plist_str ="";
 
 					plist_str.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
@@ -45,7 +65,11 @@ void processing_all_files( fs::path & full_path )
 					plist_str.append("<key>realTextureFileName</key>\n");
 					plist_str.append("<string>").append(png_name.c_str()).append("</string>\n");
 					plist_str.append("<key>size</key>\n");
-					plist_str.append("<string>").append(get_png_size(png_name.c_str())).append("</string>\n");
+					std::string size_str = get_png_size(png_name.c_str());
+					if(size_str.length()==0){
+						continue;
+					}
+					plist_str.append("<string>").append(size_str).append("</string>\n");
 					plist_str.append("<key>smartupdate</key>\n");
 					plist_str.append("<string>$TexturePacker:SmartUpdate:a76ab1f1e427e88f25db62c34a520c0f$</string>\n");
 					plist_str.append("<key>textureFileName</key>\n");
@@ -68,52 +92,52 @@ void processing_all_files( fs::path & full_path )
 					fread(frame,1,read_size,file);
 					for (int i = 0;i<count; i++)
 					{
-							char temp[2]={0};
-							char unknow = frame[0+9*i];
-							short  x ;
-							temp[1] =* (frame +1+9*i);
-							temp[0] =* (frame +2+9*i);
-							memcpy(&x,temp,2);
+						char temp[2]={0};
+						char unknow = frame[0+9*i];
+						short  x ;
+						temp[1] =* (frame +1+9*i);
+						temp[0] =* (frame +2+9*i);
+						memcpy(&x,temp,2);
 				
-							short  y ;
-							temp[1] =* (frame +3+9*i);
-							temp[0] =* (frame +4+9*i);
-							memcpy(&y ,temp,2);
+						short  y ;
+						temp[1] =* (frame +3+9*i);
+						temp[0] =* (frame +4+9*i);
+						memcpy(&y ,temp,2);
 						
-							short  width ;
-							temp[1] =* (frame +5+9*i);
-							temp[0] =* (frame +6+9*i);
-							memcpy(&width,temp,2);
+						short  width ;
+						temp[1] =* (frame +5+9*i);
+						temp[0] =* (frame +6+9*i);
+						memcpy(&width,temp,2);
 						
-							short  height ;
-							temp[1] =* (frame +7+9*i);
-							temp[0] =* (frame +8+9*i);
-							memcpy(&height,temp,2);
-							printf("fram %d {%d,%d,%d,%d}\r\n",i,x,y,width,height);
+						short  height ;
+						temp[1] =* (frame +7+9*i);
+						temp[0] =* (frame +8+9*i);
+						memcpy(&height,temp,2);
+						printf("fram %d {%d,%d,%d,%d}\r\n",i,x,y,width,height);
 
-							char frame[256]={0};
-							char sourceColorRect[256]={0};
-							char sourceSize[256]={0};
-							char key[256]={0};
+						char frame[256]={0};
+						char sourceColorRect[256]={0};
+						char sourceSize[256]={0};
+						char key[256]={0};
 
-							sprintf_s(frame,"{{%d,%d},{%d,%d}}",x,y,width,height);
-							sprintf_s(sourceColorRect,"{{%d,%d},{%d,%d}}",0,0,width,height);
-							sprintf_s(sourceSize,"{%d,%d}",width,height);
-							sprintf_s(key,"%s_%d.png",name.c_str(),i);
+						sprintf_s(frame,"{{%d,%d},{%d,%d}}",x,y,width,height);
+						sprintf_s(sourceColorRect,"{{%d,%d},{%d,%d}}",0,0,width,height);
+						sprintf_s(sourceSize,"{%d,%d}",width,height);
+						sprintf_s(key,"%s_%d.png",name.c_str(),i);
 
-							plist_str.append("<key>").append(key).append("</key>\n");
-							plist_str.append("<dict>\n");
-							plist_str.append("<key>frame</key>\n");
-							plist_str.append("<string>").append(frame).append("</string>\n");
-							plist_str.append("<key>offset</key>\n");
-							plist_str.append("<string>{0,0}</string>\n");
-							plist_str.append("<key>rotated</key>\n");
-							plist_str.append("<false/>\n");
-							plist_str.append("<key>sourceColorRect</key>\n");
-							plist_str.append("<string>").append(sourceColorRect).append("</string>\n");
-							plist_str.append("<key>sourceSize</key>\n");
-							plist_str.append("<string>").append(sourceSize).append("</string>\n");
-							plist_str.append("</dict>\n");
+						plist_str.append("<key>").append(key).append("</key>\n");
+						plist_str.append("<dict>\n");
+						plist_str.append("<key>frame</key>\n");
+						plist_str.append("<string>").append(frame).append("</string>\n");
+						plist_str.append("<key>offset</key>\n");
+						plist_str.append("<string>{0,0}</string>\n");
+						plist_str.append("<key>rotated</key>\n");
+						plist_str.append("<false/>\n");
+						plist_str.append("<key>sourceColorRect</key>\n");
+						plist_str.append("<string>").append(sourceColorRect).append("</string>\n");
+						plist_str.append("<key>sourceSize</key>\n");
+						plist_str.append("<string>").append(sourceSize).append("</string>\n");
+						plist_str.append("</dict>\n");
 					}
 					plist_str.append("</dict>\n");
 					plist_str.append("</dict>\n");
@@ -139,7 +163,7 @@ std::string get_png_size(const char* filename){
 	if(error)
 	{
 		std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
-		return 0;
+		return "";
 	}
 	char size_buf[256]={0};
 	sprintf_s(size_buf,"{%d,%d}",w, h);
