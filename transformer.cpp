@@ -79,15 +79,16 @@ void processing_all_files( fs::path & full_path )
 					plist_str.append("<key>frames</key>\n");
 					plist_str.append("<dict>\n");
 
-					FILE *file =NULL;
+ 					FILE *file =NULL;
 					int ret = fopen_s(&file,item_begin->path().filename().string().c_str(),"rb");
 					char head [7] = {0};
 					fread(head,1,7,file);
 					printf("file %s ",item_begin->path().filename().string().c_str());
-					printf("fram count %d\r\n",head[6]);
-					int count = head[6];
+					unsigned char count = head[6];
+					printf("fram count %d\r\n",count);
 					int read_size = count *9;
-					char frame [1024] = {0};
+					char frame[10240];
+				
 					fseek(file,7,0);
 					fread(frame,1,read_size,file);
 					for (int i = 0;i<count; i++)
@@ -113,14 +114,14 @@ void processing_all_files( fs::path & full_path )
 						temp[1] =* (frame +7+9*i);
 						temp[0] =* (frame +8+9*i);
 						memcpy(&height,temp,2);
-						printf("fram %d {%d,%d,%d,%d}\r\n",i,x,y,width,height);
+						
 
-						char frame[256]={0};
+						char frame_name[256]={0};
 						char sourceColorRect[256]={0};
 						char sourceSize[256]={0};
 						char key[256]={0};
 
-						sprintf_s(frame,"{{%d,%d},{%d,%d}}",x,y,width,height);
+						sprintf_s(frame_name,"{{%d,%d},{%d,%d}}",x,y,width,height);
 						sprintf_s(sourceColorRect,"{{%d,%d},{%d,%d}}",0,0,width,height);
 						sprintf_s(sourceSize,"{%d,%d}",width,height);
 						sprintf_s(key,"%s_%d.png",name.c_str(),i);
@@ -128,7 +129,7 @@ void processing_all_files( fs::path & full_path )
 						plist_str.append("<key>").append(key).append("</key>\n");
 						plist_str.append("<dict>\n");
 						plist_str.append("<key>frame</key>\n");
-						plist_str.append("<string>").append(frame).append("</string>\n");
+						plist_str.append("<string>").append(frame_name).append("</string>\n");
 						plist_str.append("<key>offset</key>\n");
 						plist_str.append("<string>{0,0}</string>\n");
 						plist_str.append("<key>rotated</key>\n");
@@ -142,6 +143,7 @@ void processing_all_files( fs::path & full_path )
 					plist_str.append("</dict>\n");
 					plist_str.append("</dict>\n");
 					plist_str.append("</plist>");
+	
 					FILE *new_file ;
 					fopen_s(&new_file,name.append(".plist").c_str(),"wb");
 					fwrite(plist_str.c_str(),1,plist_str.size(),new_file);
