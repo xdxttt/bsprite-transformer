@@ -50,7 +50,6 @@ void processing_all_files( fs::path & full_path )
 						png_name = name;
 						png_name.append(".png");
 					}
-
 					std::string plist_str ="";
 
 					plist_str.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
@@ -86,7 +85,7 @@ void processing_all_files( fs::path & full_path )
 					printf("file %s ",item_begin->path().filename().string().c_str());
 					unsigned char count = head[6];
 					printf("fram count %d\r\n",count);
-					int read_size = count *9;
+					int read_size = count *9+1;
 					char frame[10240];
 				
 					fseek(file,7,0);
@@ -94,26 +93,19 @@ void processing_all_files( fs::path & full_path )
 					for (int i = 0;i<count; i++)
 					{
 						char temp[2]={0};
-						char unknow = frame[0+9*i];
+		
 						short  x ;
-						temp[1] =* (frame +1+9*i);
-						temp[0] =* (frame +2+9*i);
-						memcpy(&x,temp,2);
+						memcpy(&x,frame +2+9*i,2);
 				
 						short  y ;
-						temp[1] =* (frame +3+9*i);
-						temp[0] =* (frame +4+9*i);
-						memcpy(&y ,temp,2);
+						memcpy(&y ,frame +4+9*i,2);
 						
 						short  width ;
-						temp[1] =* (frame +5+9*i);
-						temp[0] =* (frame +6+9*i);
-						memcpy(&width,temp,2);
+	
+						memcpy(&width,frame +6+9*i,2);
 						
 						short  height ;
-						temp[1] =* (frame +7+9*i);
-						temp[0] =* (frame +8+9*i);
-						memcpy(&height,temp,2);
+						memcpy(&height,frame +8+9*i,2);
 						
 
 						char frame_name[256]={0};
